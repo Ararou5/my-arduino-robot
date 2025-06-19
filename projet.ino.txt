@@ -1,6 +1,4 @@
-#include <Servo.h>
-
-// Définition des broches moteur
+/ Définition des broches moteur
 const int motorA_in1 = 5;
 const int motorA_in2 = 6;
 const int motorB_in3 = 9;
@@ -16,10 +14,11 @@ const int trigPin = 8;
 const int echoPin = 7;
 
 // Variable pour stocker des infos
-long duree;
+long duree;  // le temps de l’écho du capteur ultrason
 int distance;
-int stopdist = 0;
-int arret2 = 0;
+int stopdist = 0;// indicateur pour désactiver la lecture de distance après une action
+int arret2 = 0; //utilisé pour gérer le ramassage par le gripper
+
 
 Servo gripper;
 
@@ -45,11 +44,11 @@ void setup() {
 
   gripper.attach(11);  // signal branché sur la broche 11
 
-  // Démarrage de la communication série (optionnelle pour debug)
+  // Démarrage de la communication série 
   Serial.begin(9600);
 
   gripper.write(90);
-  delay(1000);        // attendre 1 seconde (ajuste selon ton gripper)
+  delay(1000);        // attendre 1 seconde 
   gripper.write(15);  // stop
   delay(1000);
 }
@@ -59,7 +58,7 @@ void loop() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
 
-  // Envoyer une impulsion de 10 microsecondes
+  // Envoyer une impulsion de 10 microsecondes .
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
@@ -139,9 +138,6 @@ void loop() {
 
 
 
-
-
-
     delay(50);
   }
   if (digitalRead(13) == 1 or distance < 10) {
@@ -176,4 +172,4 @@ void arreter() {
   analogWrite(motorA_in2, 0);
   analogWrite(motorB_in3, 0);
   analogWrite(motorB_in4, 0);
-}S
+}
