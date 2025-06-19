@@ -1,0 +1,179 @@
+#include <Servo.h>
+
+// Définition des broches moteur
+const int motorA_in1 = 5;
+const int motorA_in2 = 6;
+const int motorB_in3 = 9;
+const int motorB_in4 = 10;
+
+// Définition des broches capteurs
+const int capteurGauche = 2;
+const int capteurMilieu = 3;
+const int capteurDroit = 4;
+
+// Définition des broches du capteur ultrason
+const int trigPin = 8;
+const int echoPin = 7;
+
+// Variable pour stocker des infos
+long duree;
+int distance;
+int stopdist = 0;
+int arret2 = 0;
+
+Servo gripper;
+
+int vitesse = 150;
+int vitesseb = 255;
+
+void setup() {
+  // Configuration des broches moteur en sortie
+  pinMode(motorA_in1, OUTPUT);
+  pinMode(motorA_in2, OUTPUT);
+  pinMode(motorB_in3, OUTPUT);
+  pinMode(motorB_in4, OUTPUT);
+
+  // Configuration des broches capteurs en entrée
+  pinMode(capteurGauche, INPUT);
+  pinMode(capteurMilieu, INPUT);
+  pinMode(capteurDroit, INPUT);
+
+
+  // Initialisation des broches
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  gripper.attach(11);  // signal branché sur la broche 11
+
+  // Démarrage de la communication série (optionnelle pour debug)
+  Serial.begin(9600);
+
+  gripper.write(90);
+  delay(1000);        // attendre 1 seconde (ajuste selon ton gripper)
+  gripper.write(15);  // stop
+  delay(1000);
+}
+
+void loop() {
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Envoyer une impulsion de 10 microsecondes
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  if (stopdist == 0) {
+
+    // Mesurer la durée de l’écho
+    duree = pulseIn(echoPin, HIGH);
+  }
+  // Calculer la distance en centimètres
+  distance = duree * 0.034 / 2;
+
+  // Afficher la distance dans le moniteur série
+  Serial.print("Distance : ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Lecture des capteurs
+  int gauche = digitalRead(capteurGauche);
+  int milieu = digitalRead(capteurMilieu);
+  int droit = digitalRead(capteurDroit);
+
+  // Affichage des valeurs lues (facultatif)
+  Serial.print("Gauche: ");
+  Serial.print(gauche);
+  Serial.print(" | Milieu: ");
+  Serial.print(milieu);
+  Serial.print(" | Droit: ");
+  Serial.println(droit);
+  if (digitalRead(13) == 0 and distance > 10) {
+    // Exemple simple de décision en fonction des capteurs
+    if (milieu == HIGH) {
+      // Avancer tout droit
+      avancer();
+    }
+    if (gauche == HIGH && milieu == HIGH) {
+      // Tourner à gauche
+      tournerGauche();
+    }
+    if (droit == HIGH && milieu == HIGH) {
+      // Tourner à droite
+      tournerDroite();
+    }
+
+    if (gauche == HIGH && milieu == LOW) {
+      // Tourner à gauche
+      tournerGauche();
+    }
+    if (droit == HIGH && milieu == LOW) {
+      // Tourner à droite
+      tournerDroite();
+    }
+    if (droit == HIGH && milieu == HIGH && gauche == HIGH && arret2 == 1) {
+
+      arreter();
+      gripper.write(15);  // stop
+      while (1) {
+      }
+    }
+
+
+
+    if (droit == HIGH && milieu == HIGH && gauche == HIGH && arret2 == 0) {
+      arret2 = 1;
+      arreter();
+      delay(2000);
+      avancer();
+      delay(400);
+      arreter();
+      delay(400);
+      gripper.write(90);
+      delay(1000);
+      avancer();
+      stopdist = 1;
+      distance = 20;
+    }
+
+
+
+
+
+
+    delay(50);
+  }
+  if (digitalRead(13) == 1 or distance < 10) {
+    arreter();
+  }
+}
+
+// Fonctions pour le contrôle des moteurs
+void avancer() {
+  analogWrite(motorA_in1, vitesse);
+  analogWrite(motorA_in2, 0);
+  analogWrite(motorB_in3, vitesseb);
+  analogWrite(motorB_in4, 0);
+}
+
+void tournerDroite() {
+  analogWrite(motorA_in1, 0);
+  analogWrite(motorA_in2, vitesse);
+  analogWrite(motorB_in3, vitesse);
+  analogWrite(motorB_in4, 0);
+}
+
+void tournerGauche() {
+  analogWrite(motorA_in1, vitesse);
+  analogWrite(motorA_in2, 0);
+  analogWrite(motorB_in3, 0);
+  analogWrite(motorB_in4, vitesse);
+}
+
+void arreter() {
+  analogWrite(motorA_in1, 0);
+  analogWrite(motorA_in2, 0);
+  analogWrite(motorB_in3, 0);
+  analogWrite(motorB_in4, 0);
+}S
